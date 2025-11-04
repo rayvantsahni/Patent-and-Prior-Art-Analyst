@@ -40,3 +40,46 @@ The core novelty of this system lies in its multi-stage RAG pipeline:
 | **Embedding Model** | OpenAI `text-embedding-3-small` / GCP `text-embedding-004` | Generating high-quality patent embeddings. |
 | **Data Source** | Google Patents Database | Primary source for patent abstracts and metadata. |
 | **Frontend** | Streamlit | Creating an interactive, web-based UI for demonstration. |
+
+
+---
+
+### Project Workflow
+
+This project is built using a "Separation of Concerns" principle. The core AI logic (the "agent") is developed separately from the web interface (the "frontend"), making the system modular, testable, and scalable.
+
+
+
+#### Phase 1: Setup & Data Ingestion Pipeline
+
+1.  **Environment & DB Setup**:
+    * Initialize a new **Pinecone serverless index** to store patent vectors.
+    * Set up a Python environment with all dependencies (`langchain`, `pinecone-client`, `openai` or `google-cloud-aiplatform`, `streamlit`).
+2.  **Data Ingestion Script (`scripts/ingest_data.py`)**:
+    * Write a script to fetch patent data (e.g., via `SerpAPI` or a custom scraper).
+    * Parse the data to extract the `abstract`, `title`, and `cpc_codes`.
+    * Chunk the text documents.
+    * Generate embeddings for each chunk using a model like `text-embedding-3-small`.
+    * **Upsert** the vectors to Pinecone, including rich metadata (e.g., `{'patent_id': '...', 'cpc_codes': ['G06N 3/08']}`).
+
+#### Phase 2: Building the Core "Analyst Agent" (`src/patent_analyst/`)
+
+1.  **Prompt Engineering (`prompts.py`)**:
+    * Define all LLM prompts as string constants in a central file for easy editing. This includes the "Query Transformation" prompt and the final "Analyst Synthesis" prompt.
+2.  **Vector Retrieval (`retrieval.py`)**:
+    * Create a module to handle all interactions with Pinecone (e.g., `initialize_pinecone`, `query_patents`).
+3.  **Core Agent Logic (`agent.py`)**:
+    * Build the main `run_analysis(user_description)` function.
+    * This function calls an LLM to perform **Query Transformation** (extract keywords, generate HyDE abstract, and predict CPC codes).
+    * It then calls the `retrieval.py` module to perform the **Hybrid Search** (vector search + metadata filtering).
+    * Finally, it calls the LLM with the "Analyst Synthesis" prompt to generate the final report.
+
+#### Phase 3: Frontend & Showcase (`app.py`)
+
+1.  **Build the UI (`app.py`)**:
+    * Create a simple **Streamlit** interface.
+    * Add a title (`st.title`), a text area (`st.text_area`) for the invention description, and a button (`st.button`).
+2.  **Connect the Brain to the UI**:
+    * Import the `run_analysis` function from `src/patent_analyst/agent.py`.
+    * When the user clicks the button, call this function with the user's input.
+    * Display the returned report using `st.markdown()` and `st.spinner()`.
