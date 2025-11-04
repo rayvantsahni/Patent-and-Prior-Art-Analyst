@@ -32,14 +32,14 @@ The core novelty of this system lies in its multi-stage RAG pipeline:
 
 ### Tech Stack
 
-| Component | Tool / Model | Purpose |
-| :--- | :--- | :--- |
-| **Orchestration** | Python, LangChain | Building the complex multi-step RAG chain. |
-| **Vector Database** | **Pinecone** | Storing patent vectors and enabling advanced metadata filtering (e.g., by CPC code). |
-| **LLM (Reasoning)** | OpenAI GPT-4o / GCP Gemini 1.5 Pro | Query Transformation (HyDE/Keywords/CPC) and final Analyst Synthesis. |
+| Component | Tool / Model                                               | Purpose |
+| :--- |:-----------------------------------------------------------| :--- |
+| **Orchestration** | Python, LangChain                                          | Building the complex multi-step RAG chain. |
+| **Vector Database** | **Pinecone**                                               | Storing patent vectors and enabling advanced metadata filtering (e.g., by CPC code). |
+| **LLM (Reasoning)** | Llama `3.3-70b-versatile`                                  | Query Transformation (HyDE/Keywords/CPC) and final Analyst Synthesis. |
 | **Embedding Model** | OpenAI `text-embedding-3-small` / GCP `text-embedding-004` | Generating high-quality patent embeddings. |
-| **Data Source** | Google Patents Database | Primary source for patent abstracts and metadata. |
-| **Frontend** | Streamlit | Creating an interactive, web-based UI for demonstration. |
+| **Data Source** | Google Patents Database                                    | Primary source for patent abstracts and metadata. |
+| **Frontend** | Streamlit                                                  | Creating an interactive, web-based UI for demonstration. |
 
 
 ---
