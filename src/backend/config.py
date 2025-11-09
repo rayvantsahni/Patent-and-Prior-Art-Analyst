@@ -16,7 +16,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # Model Names
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL")
-LLM_MODEL = os.getenv("LLM_MODEL")  # Using OpenAI for easy setup TODO: Switch to Groq later
+LLM_MODEL = os.getenv("LLM_MODEL")
 
 # SerpAPI
 SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
