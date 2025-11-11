@@ -14,6 +14,7 @@ a patent database: one for the "base_technology" and one for the "novel_features
     the user is claiming. This search should be *narrow* and *specific*.
 
 For each set, generate:
+-   **technical_keywords**: A list of 5-7 specific technical keywords and synonyms.
 -   **hyde_abstract**: A "hypothetical document" [cite: README.md] abstract for that
     specific part of the invention.
 -   **cpc_codes**: The 3-5 most likely Cooperative Patent Classification (CPC) codes.
@@ -23,8 +24,6 @@ For each set, generate:
 
 **Instructions:**
 - Do not include any text, preamble, or explanation outside of the JSON object.
-- If the idea is entirely novel (e.g., "a teleporter"), the base_technology 
-  and novel_features might be very similar. That is okay.
 - If the idea is an *improvement* (e.g., "a better solar panel"), the 
   base_technology should be "solar panel" and the novel_features
   should be about the *improvement*.
@@ -32,10 +31,12 @@ For each set, generate:
 **Output (JSON format only):**
 {{
     "base_technology_search": {{
+        "technical_keywords": ["...", "..."],
         "hyde_abstract": "...",
         "cpc_codes": ["...", "..."]
     }},
     "novel_features_search": {{
+        "technical_keywords": ["...", "..."],
         "hyde_abstract": "...",
         "cpc_codes": ["...", "..."]
     }}

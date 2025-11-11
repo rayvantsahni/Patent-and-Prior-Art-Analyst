@@ -17,6 +17,7 @@ except ImportError:
     st.stop()
 
 
+# --- Internal Helper Functions ---
 def _generate_filename_prefix():
     """Generates a clean, timestamped filename prefix."""
     now = datetime.now()
@@ -38,6 +39,34 @@ def _create_docx(content):
     doc.save(buffer)
     buffer.seek(0)
     return buffer.getvalue()
+
+
+# --- Helper for displaying artifacts ---
+def _display_artifacts(artifact_dict):
+    """Helper to neatly display keywords, CPCs, and HyDE abstract."""
+
+    st.subheader("Technical Keywords & Synonyms")
+    st.markdown("> Use these terms for your own research on Google Patents.")
+    # Display as 'tags'
+    keywords = artifact_dict.get('technical_keywords', [])
+    # This is a little CSS trick to make a list look like tags
+    tags_html = "".join([
+        f"<span style='background-color: #eee; border-radius: 5px; padding: 3px 8px; margin: 3px; display: inline-block;'>{kw}</span>"
+        for kw in keywords])
+    st.markdown(tags_html, unsafe_allow_html=True)
+
+    st.subheader("Relevant CPC Codes")
+    st.markdown("> These are the 'expert-level' classifications for this technology.")
+    cpcs = artifact_dict.get('cpc_codes', [])
+    # Display as 'tags'
+    tags_html = "".join([
+        f"<span style='background-color: #e0f2fe; border-radius: 5px; padding: 3px 8px; margin: 3px; display: inline-block;'>{cpc}</span>"
+        for cpc in cpcs])
+    st.markdown(tags_html, unsafe_allow_html=True)
+
+    st.subheader("Generated HyDE Abstract")
+    st.markdown("> This is the 'hypothetical patent' the AI used to search for semantic matches.")
+    st.info(artifact_dict.get('hyde_abstract', 'N/A'))
 
 
 # --- Page Configuration ---
@@ -103,17 +132,40 @@ if st.button("Analyze Prior Art"):
         # Show a spinner while the agent is working
         with st.spinner("Agent is analyzing... This may take a moment."):
             try:
-                # Call the core agent logic
-                final_report = agent.run_analysis(user_description)
+                # Call agent and get dictionary
+                analysis_result = agent.run_analysis(user_description)
+
+                # Check for errors
+                if "error" in analysis_result:
+                    st.error(analysis_result["error"])
+                    st.stop()
+
+                final_report = analysis_result["final_report"]
+                search_artifacts = analysis_result["search_artifacts"]
 
                 # --- Display Final Report ---
                 # st.header("Analysis Report")
-                st.markdown("<h3 style='text-align: center; text-decoration: underline;'>Analysis Report</h3>", unsafe_allow_html=True)
-
-                # 1. Show the "pretty" rendered markdown. This wraps text.
+                st.markdown("<h3 style='text-align: center; text-decoration: underline;'>Analysis Report</h3>",
+                            unsafe_allow_html=True)
                 st.markdown(final_report)
 
-                # 2. Put the 'code' block (with the copy button) inside an expander.
+                # --- Display Intermediate Search Strategy ---
+                with st.expander("See AI Search Strategy (Click to Open)"):
+                    st.markdown(
+                        "This is how the AI interpreted your idea to search the patent database. You can use these artifacts for your own research as well.")
+
+                    base_artifacts = search_artifacts.get("base_technology_search", {})
+                    novel_artifacts = search_artifacts.get("novel_features_search", {})
+
+                    tab1, tab2 = st.tabs(["Base Technology Search", "Novel Features Search"])
+
+                    with tab1:
+                        _display_artifacts(base_artifacts)
+
+                    with tab2:
+                        _display_artifacts(novel_artifacts)
+
+                # --- Copy Final Report ---
                 with st.expander("Copy Report Text"):
                     st.code(final_report, language="markdown")
 

@@ -16,9 +16,12 @@ def run_analysis(user_description: str):
 
     llm = llm_client.get_llm()
     if llm is None:
-        return "Error: Could not initialize LLM. Check API keys and config."
+        return {
+            "Error": "Could not initialize LLM. Check API keys and config."
+        }
 
     # --- Stage 1: Query Transformation [cite: README.md] ---
+    search_artifacts = {}
     try:
         qt_prompt_formatted = prompts.QUERY_TRANSFORMATION_PROMPT.format(
             user_description=user_description
@@ -32,7 +35,7 @@ def run_analysis(user_description: str):
 
         search_artifacts = json.loads(response_content)
 
-        # [NEW] Parse the two separate search query objects
+        # Parse the two separate search query objects
         base_search = search_artifacts.get("base_technology_search", {})
         novel_search = search_artifacts.get("novel_features_search", {})
 
@@ -63,7 +66,7 @@ def run_analysis(user_description: str):
     all_contexts = {}  # Use a dict for easy de-duplication by patent_id
 
     try:
-        # [NEW] Call 1: Broad search for base technology
+        # Call 1: Broad search for base technology
         print("  Running Base Technology Search...")
         base_contexts = retrieval.fetch_relevant_patents(
             hyde_abstract=base_hyde,
@@ -73,7 +76,7 @@ def run_analysis(user_description: str):
         for ctx in base_contexts:
             all_contexts[ctx['patent_id']] = ctx  # Add to dict
 
-        # [NEW] Call 2: Specific search for novel features
+        # Call 2: Specific search for novel features
         print("  Running Novel Features Search...")
         novel_contexts = retrieval.fetch_relevant_patents(
             hyde_abstract=novel_hyde,
@@ -105,6 +108,7 @@ def run_analysis(user_description: str):
     # --- Stage 4: Analyst Synthesis [cite: README.md] ---
     print("\n--- 3. Starting Analyst Synthesis ---")
 
+    final_report = ""
     try:
         synthesis_prompt_formatted = prompts.ANALYST_SYNTHESIS_PROMPT.format(
             user_description=user_description,
@@ -119,4 +123,11 @@ def run_analysis(user_description: str):
         return "Error during final report synthesis."
 
     print("\n--- Analysis Complete ---")
-    return final_report
+
+    # Return a dictionary with all results
+    return {
+        "final_report": final_report,
+        "search_artifacts": search_artifacts
+    }
+
+
