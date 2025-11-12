@@ -55,7 +55,10 @@ def _display_artifacts(artifact_dict):
         for kw in keywords])
     st.markdown(tags_html, unsafe_allow_html=True)
 
-    st.subheader("Relevant CPC Codes")
+    st.subheader(
+        "Relevant CPC Codes",
+        help="CPC stands for 'Cooperative Patent Classification'. This is a professional, expert-level 'tag' used to categorize patents. You can paste these codes directly into Google Patents to find all patents in that specific category."
+    )
     st.markdown("> These are the 'expert-level' classifications for this technology.")
     cpcs = artifact_dict.get('cpc_codes', [])
     # Display as 'tags'
@@ -64,7 +67,10 @@ def _display_artifacts(artifact_dict):
         for cpc in cpcs])
     st.markdown(tags_html, unsafe_allow_html=True)
 
-    st.subheader("Generated HyDE Abstract")
+    st.subheader(
+        "Generated HyDE Abstract",
+        help="""HyDE stands for 'Hypothetical Document Embedding'. The AI writes this "perfect" abstract for a patent that matches your idea. It then converts this abstract into a vector in hopes to find the most semantically similar patents in the database."""
+    )
     st.markdown("> This is the 'hypothetical patent' the AI used to search for semantic matches.")
     st.info(artifact_dict.get('hyde_abstract', 'N/A'))
 
