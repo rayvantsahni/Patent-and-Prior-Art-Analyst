@@ -18,43 +18,59 @@ except ImportError:
 
 # --- Configuration ---
 BIGQUERY_SQL_QUERY = """
+-- Use a Common Table Expression (CTE) for clarity
+WITH patents_with_text AS (
+    SELECT
+        pub.publication_number,
+        pub.cpc,
+        -- Efficient subquery to get just the English title
+        (SELECT text FROM UNNEST(pub.title_localized) WHERE language = 'en' LIMIT 1) AS title,
+        -- Efficient subquery to get just the English abstract
+        (SELECT text FROM UNNEST(pub.abstract_localized) WHERE language = 'en' LIMIT 1) AS abstract
+    FROM
+        `patents-public-data.patents.publications` AS pub
+    WHERE
+        pub.filing_date > 20170101 -- "Modern Era" filter
+)
+-- Main query
 SELECT
-    pub.publication_number,
-    title_text.text AS title,
-    abstract_text.text AS abstract, -- Get all CPC codes for this patent as a single, comma-separated string
+    pwt.publication_number,
+    pwt.title,
+    pwt.abstract,
+    -- Get all CPC codes for this patent as a single, comma-separated string
     ARRAY_TO_STRING(ARRAY(
         SELECT cpc.code
-        FROM UNNEST(pub.cpc) AS cpc
+        FROM UNNEST(pwt.cpc) AS cpc
     ), ', ') AS cpc_codes
 FROM
-    `patents-public-data.patents.publications` AS pub,
-    UNNEST(pub.abstract_localized) AS abstract_text,
-    UNNEST(pub.title_localized) AS title_text
-JOIN
-    UNNEST(pub.cpc) AS cpc_code_filter
+    patents_with_text AS pwt
 WHERE
-    pub.filing_date > 20170101 -- "Modern Era" filter
-    AND abstract_text.language = 'en' -- Filter for English abstracts
-    AND title_text.language = 'en' -- Filter for English titles
-    AND (
-        -- Cluster 1: AI & Data
-        cpc_code_filter.code LIKE 'G06N%' OR
-        cpc_code_filter.code LIKE 'G06F%' OR
-        cpc_code_filter.code LIKE 'G06K%' OR
+    -- Filter out patents that didn't have an English title or abstract
+    pwt.title IS NOT NULL
+    AND pwt.abstract IS NOT NULL
+    -- [NEW EFFICIENCY HACK]
+    -- This 'peeks' into the cpc array, which is much faster than the old JOIN + GROUP BY pattern.
+    AND EXISTS (
+        SELECT 1
+        FROM UNNEST(pwt.cpc) AS cpc_code_check
+        WHERE
+            -- Cluster 1: AI & Data
+            cpc_code_check.code LIKE 'G06N%' OR
+            cpc_code_check.code LIKE 'G06F%' OR
+            cpc_code_check.code LIKE 'G06K%' OR
 
-        -- Cluster 2: Semiconductors & Hardware
-        cpc_code_filter.code LIKE 'H01L%' OR
+            -- Cluster 2: Semiconductors & Hardware
+            cpc_code_check.code LIKE 'H01L%' OR
 
-        -- Cluster 3: Autonomous Systems & Vehicles
-        cpc_code_filter.code LIKE 'B60W%' OR
-        cpc_code_filter.code LIKE 'G05D%' OR
+            -- Cluster 3: Autonomous Systems & Vehicles
+            cpc_code_check.code LIKE 'B60W%' OR
+            cpc_code_check.code LIKE 'G05D%' OR
 
-        -- Cluster 4: MedTech & Bioinformatics
-        cpc_code_filter.code LIKE 'A61B%' OR
-        cpc_code_filter.code LIKE 'G16H%'
+            -- Cluster 4: MedTech & Bioinformatics
+            cpc_code_check.code LIKE 'A61B%' OR
+            cpc_code_check.code LIKE 'G16H%'
     )
-GROUP BY 1, 2, 3, 4 -- Group to get one row per patent
-LIMIT 2
+LIMIT 20000;
 """
 
 # Batch sizes for efficiency
@@ -212,7 +228,7 @@ def main():
         return
 
     # --- [DEFAULTING TO 10-PATENT TEST RUN] ---
-    print(f"--- Running Small Test Query ({BIGQUERY_SQL_QUERY.split('LIMIT')[-1].strip()} patents) ---")
+    print(f"--- Running Query to fetch ({BIGQUERY_SQL_QUERY.split('LIMIT')[-1].strip()} patents) ---")
     patents = fetch_data_from_bigquery(bq_client, BIGQUERY_SQL_QUERY)
 
     if not patents:
@@ -225,11 +241,8 @@ def main():
     print("Final Pinecone index stats after test:")
     print(index.describe_index_stats())
 
-    # TODO: Remove this part after running for 20,000 patents
     print("\n--- [INFO] ---")
-    print(f"Test run with {BIGQUERY_SQL_QUERY.split('LIMIT')[-1].strip()} patents complete.")
-    print(
-        "To run the full 20,000-patent ingestion, change 'LIMIT 10' to 'LIMIT 20000' in scripts/ingest_data.py and re-run.")
+    print(f"Retrieval of {BIGQUERY_SQL_QUERY.split('LIMIT')[-1].strip()[:-1]} patents complete.")
 
 
 # --- Script Execution ---
