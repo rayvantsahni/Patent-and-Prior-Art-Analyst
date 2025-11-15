@@ -118,7 +118,7 @@ st.set_page_config(
 )
 
 # --- Page Title & Description ---
-st.title("🤖 Patent & Prior Art Analyst Agent")
+st.title("Patent & Prior Art Analyst Agent")
 st.markdown("""
 Welcome! This application uses an advanced AI-powered agent to help you research prior art for your invention.
 Simply describe your idea in plain English, and the agent will:

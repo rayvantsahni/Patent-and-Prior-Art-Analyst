@@ -20,7 +20,7 @@ def run_analysis(user_description: str):
             "Error": "Could not initialize LLM. Check API keys and config."
         }
 
-    # --- Stage 1: Query Transformation [cite: README.md] ---
+    # --- Stage 1: Query Transformation ---
     search_artifacts = {}
     try:
         qt_prompt_formatted = prompts.QUERY_TRANSFORMATION_PROMPT.format(
@@ -60,7 +60,7 @@ def run_analysis(user_description: str):
         print(f"Error in Stage 1 (Query Transformation): {e}")
         return "Error during query transformation."
 
-    # --- Stage 2: Advanced Hybrid Retrieval (Multi-Query) [cite: README.md] ---
+    # --- Stage 2: Advanced Hybrid Retrieval (Multi-Query) ---
     print("\n--- 2. Starting Advanced Hybrid Retrieval ---")
 
     all_contexts = {}  # Use a dict for easy de-duplication by patent_id
@@ -105,7 +105,7 @@ def run_analysis(user_description: str):
         print(f"Error in Stage 2 (Retrieval): {e}")
         return "Error during patent retrieval."
 
-    # --- Stage 4: Analyst Synthesis [cite: README.md] ---
+    # --- Stage 4: Analyst Synthesis ---
     print("\n--- 3. Starting Analyst Synthesis ---")
 
     final_report = ""

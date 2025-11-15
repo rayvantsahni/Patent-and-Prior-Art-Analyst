@@ -15,7 +15,7 @@ a patent database: one for the "base_technology" and one for the "novel_features
 
 For each set, generate:
 -   **technical_keywords**: A list of 5-7 specific technical keywords and synonyms.
--   **hyde_abstract**: A "hypothetical document" [cite: README.md] abstract for that
+-   **hyde_abstract**: A "hypothetical document" abstract for that
     specific part of the invention.
 -   **cpc_codes**: The 3-5 most likely Cooperative Patent Classification (CPC) codes.
 
