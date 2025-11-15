@@ -42,37 +42,72 @@ def _create_docx(content):
 
 
 # --- Helper for displaying artifacts ---
-def _display_artifacts(artifact_dict):
-    """Helper to neatly display keywords, CPCs, and HyDE abstract."""
+def _display_artifacts_side_by_side(base_artifacts, novel_artifacts):
+    """Helper to neatly display keywords, CPCs, and HyDE abstract side by side."""
 
-    st.subheader("Technical Keywords & Synonyms")
+    # Technical Keywords & Synonyms
+    st.markdown("<h3 style='text-align: center;'>Technical Keywords & Synonyms</h3>", unsafe_allow_html=True)
     st.markdown("> Use these terms for your own research on Google Patents.")
-    # Display as 'tags'
-    keywords = artifact_dict.get('technical_keywords', [])
-    # This is a little CSS trick to make a list look like tags
-    tags_html = "".join([
-        f"<span style='background-color: #eee; border-radius: 5px; padding: 3px 8px; margin: 3px; display: inline-block;'>{kw}</span>"
-        for kw in keywords])
-    st.markdown(tags_html, unsafe_allow_html=True)
 
-    st.subheader(
-        "Relevant CPC Codes",
-        help="CPC stands for 'Cooperative Patent Classification'. This is a professional, expert-level 'tag' used to categorize patents. You can paste these codes directly into Google Patents to find all patents in that specific category."
-    )
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("**Base Technology Search**")
+        base_keywords = base_artifacts.get('technical_keywords', [])
+        tags_html = "".join([
+            f"<span style='background-color: #eee; border-radius: 5px; padding: 3px 8px; margin: 3px; display: inline-block;'>{kw}</span>"
+            for kw in base_keywords])
+        st.markdown(tags_html, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("**Novel Features Search**")
+        novel_keywords = novel_artifacts.get('technical_keywords', [])
+        tags_html = "".join([
+            f"<span style='background-color: #eee; border-radius: 5px; padding: 3px 8px; margin: 3px; display: inline-block;'>{kw}</span>"
+            for kw in novel_keywords])
+        st.markdown(tags_html, unsafe_allow_html=True)
+
+    st.divider()
+
+    # Relevant CPC Codes
+    st.markdown("<h3 style='text-align: center;'>Relevant CPC Codes</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size: 0.9em; color: #666;'>CPC stands for 'Cooperative Patent Classification'. This is a professional, expert-level 'tag' used to categorize patents. You can paste these codes directly into Google Patents to find all patents in that specific category.</p>", unsafe_allow_html=True)
     st.markdown("> These are the 'expert-level' classifications for this technology.")
-    cpcs = artifact_dict.get('cpc_codes', [])
-    # Display as 'tags'
-    tags_html = "".join([
-        f"<span style='background-color: #e0f2fe; border-radius: 5px; padding: 3px 8px; margin: 3px; display: inline-block;'>{cpc}</span>"
-        for cpc in cpcs])
-    st.markdown(tags_html, unsafe_allow_html=True)
 
-    st.subheader(
-        "Generated HyDE Abstract",
-        help="""HyDE stands for 'Hypothetical Document Embedding'. The AI writes this "perfect" abstract for a patent that matches your idea. It then converts this abstract into a vector in hopes to find the most semantically similar patents in the database."""
-    )
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("**Base Technology Search**")
+        base_cpcs = base_artifacts.get('cpc_codes', [])
+        tags_html = "".join([
+            f"<span style='background-color: #e0f2fe; border-radius: 5px; padding: 3px 8px; margin: 3px; display: inline-block;'>{cpc}</span>"
+            for cpc in base_cpcs])
+        st.markdown(tags_html, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("**Novel Features Search**")
+        novel_cpcs = novel_artifacts.get('cpc_codes', [])
+        tags_html = "".join([
+            f"<span style='background-color: #e0f2fe; border-radius: 5px; padding: 3px 8px; margin: 3px; display: inline-block;'>{cpc}</span>"
+            for cpc in novel_cpcs])
+        st.markdown(tags_html, unsafe_allow_html=True)
+
+    st.divider()
+
+    # Generated HyDE Abstract
+    st.markdown("<h3 style='text-align: center;'>Generated HyDE Abstract</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size: 0.9em; color: #666;'>HyDE stands for 'Hypothetical Document Embedding'. The AI writes this \"perfect\" abstract for a patent that matches your idea. It then converts this abstract into a vector in hopes to find the most semantically similar patents in the database.</p>", unsafe_allow_html=True)
     st.markdown("> This is the 'hypothetical patent' the AI used to search for semantic matches.")
-    st.info(artifact_dict.get('hyde_abstract', 'N/A'))
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("**Base Technology Search**")
+        st.info(base_artifacts.get('hyde_abstract', 'N/A'))
+
+    with col2:
+        st.markdown("**Novel Features Search**")
+        st.info(novel_artifacts.get('hyde_abstract', 'N/A'))
 
 
 # --- Page Configuration ---
@@ -163,13 +198,7 @@ if st.button("Analyze Prior Art"):
                     base_artifacts = search_artifacts.get("base_technology_search", {})
                     novel_artifacts = search_artifacts.get("novel_features_search", {})
 
-                    tab1, tab2 = st.tabs(["Base Technology Search", "Novel Features Search"])
-
-                    with tab1:
-                        _display_artifacts(base_artifacts)
-
-                    with tab2:
-                        _display_artifacts(novel_artifacts)
+                    _display_artifacts_side_by_side(base_artifacts, novel_artifacts)
 
                 # --- Copy Final Report ---
                 with st.expander("Copy Report Text"):
