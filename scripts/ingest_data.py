@@ -48,29 +48,34 @@ WHERE
     -- Filter out patents that didn't have an English title or abstract
     pwt.title IS NOT NULL
     AND pwt.abstract IS NOT NULL
-    -- [NEW EFFICIENCY HACK]
-    -- This 'peeks' into the cpc array, which is much faster than the old JOIN + GROUP BY pattern.
+    -- This 'peeks' into the cpc array, which is much faster
+    -- than the old JOIN + GROUP BY pattern.
     AND EXISTS (
         SELECT 1
         FROM UNNEST(pwt.cpc) AS cpc_code_check
         WHERE
-            -- Cluster 1: AI & Data
-            cpc_code_check.code LIKE 'G06N%' OR
-            cpc_code_check.code LIKE 'G06F%' OR
-            cpc_code_check.code LIKE 'G06K%' OR
+            -- Cluster 1: AI & Computing
+            cpc_code_check.code LIKE 'G06N%' OR -- AI / Machine Learning
+            cpc_code_check.code LIKE 'G06F%' OR -- Digital Data Processing
+            cpc_code_check.code LIKE 'G06K%' OR -- Pattern Recognition
 
-            -- Cluster 2: Semiconductors & Hardware
-            cpc_code_check.code LIKE 'H01L%' OR
+            -- Cluster 2: Hardware, Semis & Batteries
+            cpc_code_check.code LIKE 'H01L%' OR -- Semiconductors
+            cpc_code_check.code LIKE 'H01M%' OR -- Batteries / Energy Storage
 
-            -- Cluster 3: Autonomous Systems & Vehicles
-            cpc_code_check.code LIKE 'B60W%' OR
-            cpc_code_check.code LIKE 'G05D%' OR
+            -- Cluster 3: Autonomous Systems & Connectivity
+            cpc_code_check.code LIKE 'B60W%' OR -- Autonomous Vehicle Control
+            cpc_code_check.code LIKE 'G05D%' OR -- Drones / Robotics
+            cpc_code_check.code LIKE 'H04W%' OR -- Wireless / 5G / 6G
+            cpc_code_check.code LIKE 'H04B%' OR -- Transmission / Near-Field
 
-            -- Cluster 4: MedTech & Bioinformatics
-            cpc_code_check.code LIKE 'A61B%' OR
-            cpc_code_check.code LIKE 'G16H%'
+            -- Cluster 4: MedTech & Biotech
+            cpc_code_check.code LIKE 'A61B%' OR -- Diagnosis / Surgery / Wearables
+            cpc_code_check.code LIKE 'G16H%' OR -- Healthcare Informatics
+            cpc_code_check.code LIKE 'C12N%' OR -- Micro-organisms / Gene Editing (CRISPR)
+            cpc_code_check.code LIKE 'C12Q%'    -- Measuring / Testing (Bio-assays)
     )
-LIMIT 20000;
+LIMIT 80000;
 """
 
 # Batch sizes for efficiency
@@ -227,8 +232,7 @@ def main():
         print("Exiting due to initialization failure.")
         return
 
-    # --- [DEFAULTING TO 10-PATENT TEST RUN] ---
-    print(f"--- Running Query to fetch ({BIGQUERY_SQL_QUERY.split('LIMIT')[-1].strip()} patents) ---")
+    print(f"--- Running Query to fetch ({BIGQUERY_SQL_QUERY.split('LIMIT')[-1].strip().replace(';', '')} patents) ---")
     patents = fetch_data_from_bigquery(bq_client, BIGQUERY_SQL_QUERY)
 
     if not patents:
@@ -242,7 +246,7 @@ def main():
     print(index.describe_index_stats())
 
     print("\n--- [INFO] ---")
-    print(f"Retrieval of {BIGQUERY_SQL_QUERY.split('LIMIT')[-1].strip()[:-1]} patents complete.")
+    print(f"Retrieval of {BIGQUERY_SQL_QUERY.split('LIMIT')[-1].strip().replace(';', '')} patents complete.")
 
 
 # --- Script Execution ---
