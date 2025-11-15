@@ -1,0 +1,24 @@
+# Frontend Framework
+streamlit==1.51.0
+
+# Environment Configuration
+python-dotenv==1.2.1
+
+# LLM Providers & LangChain
+langchain==1.0.3
+langchain-core==1.0.3
+langchain-groq==1.0.0
+langchain-openai==1.0.2
+langchain-text-splitters==1.0.0
+
+# Vector Database
+pinecone==7.3.0
+
+# Data Source
+google-cloud-bigquery==3.38.0
+
+# Document Processing
+python-docx==1.2.0
+
+# Utilities
+tqdm==4.67.1
