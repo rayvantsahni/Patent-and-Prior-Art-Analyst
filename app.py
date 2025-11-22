@@ -12,6 +12,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 try:
     from src.backend import agent
+    from src.backend.rate_limiter import SimpleRateLimiter
 except ImportError:
     st.error("Error: Could not import the backend agent. Make sure 'src/backend/agent.py' exists.")
     st.stop()
@@ -117,6 +118,10 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- Rate Limiter Setup ---
+# Initialize rate limiter: 5 queries per session
+rate_limiter = SimpleRateLimiter(max_queries_per_session=5)
+
 # --- Page Title & Description ---
 st.title("Patent & Prior Art Analyst Agent")
 st.markdown("""
@@ -127,6 +132,29 @@ Simply describe your idea in plain English, and the agent will:
 2.  **Search** a patent database for semantically similar and relevant documents.
 3.  **Synthesize** the findings into an expert-level summary.
 """)
+
+st.divider()
+
+# --- Usage Indicator ---
+rate_limiter.show_usage_indicator()
+
+# --- Usage Limits Info ---
+with st.expander("ℹ️ About Usage Limits"):
+    st.markdown("""
+    **Why are there usage limits?**
+
+    This app uses advanced AI models and vector databases which have associated costs.
+    To keep the service free and available for everyone, I've implemented fair usage limits:
+
+    - **5 queries per browser session** - Each session gets 5 free analyses
+    - **Refresh for more** - You can refresh your browser to start a new session
+    - **Please use responsibly** - This is a free service, so users are trusted to be fair
+
+    **How it works:**
+    - Your query counter is tied to your browser session
+    - After 5 queries, you'll need to refresh the page to continue
+    - This is a "soft limit" that relies on honest usage
+    """)
 
 st.divider()
 
@@ -169,6 +197,8 @@ div.stButton > button:first-child:hover {
 if st.button("Analyze Prior Art"):
     if not user_description.strip():
         st.warning("Please enter a description of your invention.")
+    elif not rate_limiter.can_query():
+        st.error("⛔ Session limit reached (5 queries used). Please refresh your browser to start a new session with 5 fresh queries.")
     else:
         # Show a spinner while the agent is working
         with st.spinner("Agent is analyzing... This may take a moment."):
@@ -180,6 +210,9 @@ if st.button("Analyze Prior Art"):
                 if "error" in analysis_result:
                     st.error(analysis_result["error"])
                     st.stop()
+
+                # Increment query counter after successful analysis
+                rate_limiter.increment()
 
                 final_report = analysis_result["final_report"]
                 search_artifacts = analysis_result["search_artifacts"]
