@@ -131,6 +131,8 @@ Simply describe your idea in plain English, and the agent will:
 1.  **Transform** your idea into technical keywords, a hypothetical abstract, and relevant CPC codes.
 2.  **Search** a patent database for semantically similar and relevant documents.
 3.  **Synthesize** the findings into an expert-level summary.
+
+📖 **Read more about this app and its limitations [HERE](https://github.com/rayvantsahni/Patent-and-Prior-Art-Analyst/blob/main/README.md).**
 """)
 
 st.divider()

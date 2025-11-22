@@ -6,6 +6,8 @@
 [![Pinecone](https://img.shields.io/badge/Pinecone-v7.3.0-blue.svg)](https://www.pinecone.io/)
 [![Google BigQuery](https://img.shields.io/badge/Google_BigQuery-Data_Source-orange.svg)](https://cloud.google.com/bigquery)
 
+## 🚀 <u>[Try the Live App Here](https://patent-analyst.streamlit.app/)</u>
+
 This project is an advanced **Retrieval-Augmented Generation (RAG)** application designed to democratize professional patent research. It functions as an intelligent **Prior Art Analyst Agent**, allowing an inventor or researcher to paste a natural-language description of an idea and receive an expert-level summary of existing, similar inventions.
 
 The agent's "brain" is a multi-step, multi-query reasoning pipeline that mimics the strategy of a professional patent researcher.
